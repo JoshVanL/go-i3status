@@ -1,15 +1,29 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/joshvanl/go-i3status/blocks"
 	"github.com/joshvanl/go-i3status/handler"
 	"github.com/joshvanl/go-i3status/protocol"
 )
 
-func main() {
-	h := handler.New()
+var (
+	enabledBlocks = []func(*protocol.Block, *handler.Handler){
+		blocks.Battery,
+		blocks.Time,
+	}
+)
 
-	for _, f := range blocks.All() {
+func main() {
+	h, err := handler.New()
+	if err != nil {
+		fmt.Printf("error creating handler: %s", err)
+		os.Exit(1)
+	}
+
+	for _, f := range enabledBlocks {
 		b := &protocol.Block{
 			Align:      protocol.Right,
 			Color:      "#dddddd",

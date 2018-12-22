@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/joshvanl/go-i3status/protocol"
+	"github.com/joshvanl/go-i3status/watcher"
 )
 
 type Handler struct {
@@ -17,19 +18,24 @@ type Handler struct {
 	stdout *os.File
 
 	registeredEvents map[string][]func(*protocol.ClickEvent)
+	watcher          *watcher.Watcher
 
-	stopCh     chan struct{}
 	paused     bool
-	blocksLock sync.RWMutex
+	blocksLock sync.Mutex
 }
 
-func New() *Handler {
+func New() (*Handler, error) {
+	w, err := watcher.New()
+	if err != nil {
+		return nil, err
+	}
+
 	h := &Handler{
 		stdin:            os.Stdin,
 		stdout:           os.Stdout,
-		stopCh:           make(chan struct{}),
 		paused:           false,
 		registeredEvents: make(map[string][]func(*protocol.ClickEvent)),
+		watcher:          w,
 	}
 
 	go h.signalHandler()
@@ -42,12 +48,12 @@ func New() *Handler {
 		ClickEvents:    true,
 	})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	h.stdout.Write(append(b, '['))
 
-	return h
+	return h, nil
 }
 
 func (h *Handler) RegisterClickEvent(name string, f func(*protocol.ClickEvent)) {
@@ -67,16 +73,15 @@ func (h *Handler) Tick() {
 		return
 	}
 
-	h.blocksLock.RLock()
+	h.blocksLock.Lock()
 
 	b, err := json.Marshal(h.blocks)
 	if err != nil {
 		return
 	}
 
-	h.blocksLock.RUnlock()
-
 	h.stdout.Write(append(b, ','))
+	h.blocksLock.Unlock()
 }
 
 func (h *Handler) clickEvents() {
@@ -102,6 +107,12 @@ func (h *Handler) clickEvents() {
 			go f(clickEvent)
 		}
 	}
+}
+
+func (h *Handler) WatchFile(path string) (chan struct{}, error) {
+	ch := make(chan struct{})
+	err := h.watcher.AddFile(path, ch)
+	return ch, err
 }
 
 func (h *Handler) LockBlocks() {
