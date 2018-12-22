@@ -7,18 +7,6 @@ import (
 )
 
 func main() {
-	//blocks := []*protocol.Block{
-	//	&protocol.Block{
-	//		Name:       "echo",
-	//		Instance:   "echoIn",
-	//		FullText:   "hello",
-	//		Align:      protocol.Right,
-	//		Color:      "#dddddd",
-	//		Background: "#2c2c2ccc",
-	//		Border:     "#2c2c2ccc",
-	//	},
-	//}
-
 	h := handler.New()
 
 	for _, f := range blocks.All() {

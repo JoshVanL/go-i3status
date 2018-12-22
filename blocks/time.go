@@ -1,6 +1,7 @@
 package blocks
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/joshvanl/go-i3status/handler"
@@ -9,18 +10,22 @@ import (
 
 func Time(block *protocol.Block, h *handler.Handler) {
 	block.Name = "time"
-	block.Instance = "time"
 	now := time.Now()
 	m := now.Minute()
-	block.FullText = now.Format("15:04") + " "
+	block.FullText = getString(now)
 	h.Tick()
 
 	ticker := time.NewTicker(time.Second)
 	for t := range ticker.C {
 		if m != t.Minute() {
-			m = t.Minute()
-			block.FullText = t.Format("15:04") + " "
+			block.FullText = getString(t)
 			h.Tick()
+			m = t.Minute()
 		}
 	}
+}
+
+func getString(t time.Time) string {
+	return fmt.Sprintf("%s %d %s %d  |  %s ",
+		t.Format("Mon"), t.Day(), t.Format("Dec"), t.Year(), t.Format("15:04"))
 }
