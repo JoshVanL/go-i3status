@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/joshvanl/go-i3status/handler"
 	"github.com/joshvanl/go-i3status/protocol"
@@ -14,41 +16,50 @@ import (
 const (
 	path        = "/sys/class/power_supply"
 	batteryName = "BAT0"
+	// TODO: do proper path
+	watchPath = "/home/josh/go/src/github.com/joshvanl/go-i3status/battery_watch"
 )
 
 func Battery(block *protocol.Block, h *handler.Handler) {
 	block.Name = "battery"
 
-	statPath := filepath.Join(path, batteryName, "status")
 	capPath := filepath.Join(path, batteryName, "capacity")
+	statPath := filepath.Join(path, batteryName, "status")
 
 	status := readFile(statPath)
 	capacity := readFile(capPath)
-
 	setBatteryString(block, status, capacity)
 	h.Tick()
 
-	statCh, err := h.WatchFile(statPath)
+	// TODO: use signals
+	_, err := os.Create(watchPath)
 	if err != nil {
-		return
+		panic(err)
 	}
 
-	capCh, err := h.WatchFile(capPath)
+	ch, err := h.WatchFile(watchPath)
 	if err != nil {
-		return
+		panic(err)
 	}
+
+	ticker := time.NewTicker(time.Minute * 3).C
 
 	for {
-		select {
-		case <-statCh:
-			status = readFile(statPath)
+		tickNow := false
 
-		case <-capCh:
-			capacity = readFile(capPath)
+		select {
+		case <-ch:
+			tickNow = true
+		case <-ticker:
 		}
 
+		status := readFile(statPath)
+		capacity := readFile(capPath)
 		setBatteryString(block, status, capacity)
-		h.Tick()
+
+		if tickNow {
+			h.Tick()
+		}
 	}
 }
 
