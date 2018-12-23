@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/joshvanl/go-i3status/protocol"
+	"github.com/joshvanl/go-i3status/sysinfo"
 	"github.com/joshvanl/go-i3status/watcher"
 )
 
@@ -19,6 +20,7 @@ type Handler struct {
 
 	registeredEvents map[string][]func(*protocol.ClickEvent)
 	watcher          *watcher.Watcher
+	sysinfo          *sysinfo.SysInfo
 
 	paused     bool
 	blocksLock sync.Mutex
@@ -30,12 +32,18 @@ func New() (*Handler, error) {
 		return nil, err
 	}
 
+	s, err := sysinfo.New()
+	if err != nil {
+		return nil, err
+	}
+
 	h := &Handler{
 		stdin:            os.Stdin,
 		stdout:           os.Stdout,
 		paused:           false,
 		registeredEvents: make(map[string][]func(*protocol.ClickEvent)),
 		watcher:          w,
+		sysinfo:          s,
 	}
 
 	go h.signalHandler()
@@ -57,23 +65,24 @@ func New() (*Handler, error) {
 }
 
 func (h *Handler) RegisterClickEvent(name string, f func(*protocol.ClickEvent)) {
-	h.LockBlocks()
+	h.blocksLock.Lock()
 	h.registeredEvents[name] = append(h.registeredEvents[name], f)
-	h.UnlockBlocks()
+	h.blocksLock.Unlock()
 }
 
 func (h *Handler) RegisterBlock(b *protocol.Block) {
-	h.LockBlocks()
+	h.blocksLock.Lock()
 	h.blocks = append(h.blocks, b)
-	h.UnlockBlocks()
+	h.blocksLock.Unlock()
 }
 
 func (h *Handler) Tick() {
+	h.blocksLock.Lock()
+	defer h.blocksLock.Unlock()
+
 	if h.paused {
 		return
 	}
-
-	h.blocksLock.Lock()
 
 	b, err := json.Marshal(h.blocks)
 	if err != nil {
@@ -81,7 +90,6 @@ func (h *Handler) Tick() {
 	}
 
 	h.stdout.Write(append(b, ','))
-	h.blocksLock.Unlock()
 }
 
 func (h *Handler) clickEvents() {
@@ -115,12 +123,8 @@ func (h *Handler) WatchFile(path string) (chan struct{}, error) {
 	return ch, err
 }
 
-func (h *Handler) LockBlocks() {
-	h.blocksLock.Lock()
-}
-
-func (h *Handler) UnlockBlocks() {
-	h.blocksLock.Unlock()
+func (h *Handler) SysInfo() *sysinfo.SysInfo {
+	return h.sysinfo
 }
 
 func (h *Handler) signalHandler() {

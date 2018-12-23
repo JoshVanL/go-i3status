@@ -1,0 +1,2 @@
+Use signals for battery etc.
+Use a shared scheduler for cron type modules
