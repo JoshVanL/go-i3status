@@ -1,5 +1,7 @@
 package sysinfo
 
+//#include <stdlib.h>
+import "C"
 import (
 	"sync"
 	"time"
@@ -51,9 +53,22 @@ const loadScale = 1.0 // LINUX_SYSINFO_LOADS_SCALE
 func (s *SysInfo) CPULoads() [3]float64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return [3]float64{
+	loads := [3]float64{
 		float64(s.cpuLoads[0]) / loadScale,
 		float64(s.cpuLoads[1]) / loadScale,
 		float64(s.cpuLoads[2]) / loadScale,
 	}
+
+	_, err := getloadavg(&loads, 3)
+	if err != nil {
+		panic(err)
+	}
+
+	return loads
+}
+
+// To allow tests to mock out getloadavg.
+var getloadavg = func(out *[3]float64, count int) (int, error) {
+	read, err := C.getloadavg((*C.double)(&out[0]), (C.int)(count))
+	return int(read), err
 }

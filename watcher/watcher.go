@@ -63,7 +63,6 @@ func (w *Watcher) run() {
 			continue
 		}
 
-		panic(nil)
 		ch <- struct{}{}
 	}
 }

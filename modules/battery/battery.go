@@ -1,15 +1,14 @@
 package battery
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/joshvanl/go-i3status/handler"
+	"github.com/joshvanl/go-i3status/modules/utils"
 	"github.com/joshvanl/go-i3status/protocol"
 )
 
@@ -26,8 +25,8 @@ func Battery(block *protocol.Block, h *handler.Handler) {
 	capPath := filepath.Join(path, batteryName, "capacity")
 	statPath := filepath.Join(path, batteryName, "status")
 
-	status := readFile(statPath)
-	capacity := readFile(capPath)
+	status := utils.ReadFile(statPath)
+	capacity := utils.ReadFile(capPath)
 	setBatteryString(block, status, capacity)
 	h.Tick()
 
@@ -53,8 +52,8 @@ func Battery(block *protocol.Block, h *handler.Handler) {
 		case <-ticker:
 		}
 
-		status := readFile(statPath)
-		capacity := readFile(capPath)
+		status := utils.ReadFile(statPath)
+		capacity := utils.ReadFile(capPath)
 		setBatteryString(block, status, capacity)
 
 		if tickNow {
@@ -133,13 +132,4 @@ func getIcon(b *protocol.Block, capacity int) string {
 	}
 
 	return ""
-}
-
-func readFile(path string) []byte {
-	f, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil
-	}
-
-	return bytes.TrimSpace(f)
 }
