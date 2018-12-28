@@ -8,6 +8,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/battery"
 	//"github.com/joshvanl/go-i3status/modules/cpu"
 	"github.com/joshvanl/go-i3status/modules/date"
+	"github.com/joshvanl/go-i3status/modules/memory"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
 	"github.com/joshvanl/go-i3status/protocol"
@@ -15,6 +16,7 @@ import (
 
 var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
+		memory.Memory,
 		wallpaper.Wallpaper,
 		//cpu.CPU,
 		battery.Battery,
