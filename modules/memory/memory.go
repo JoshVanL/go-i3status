@@ -12,6 +12,8 @@ func Memory(block *protocol.Block, h *handler.Handler) {
 	ticker := time.NewTicker(time.Second * 20).C
 
 	block.Name = "memory"
+	block.Separator = false
+	block.SeparatorBlockWidth = 15
 
 	for {
 		mem := h.SysInfo().Memory()

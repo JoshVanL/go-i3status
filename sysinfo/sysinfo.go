@@ -73,6 +73,10 @@ func (s *SysInfo) CPULoad() float64 {
 
 	idle := float64(s.cpuIdleNew - s.cpuIdleOld)
 	total := float64(s.cpuTotalNew - s.cpuTotalOld)
+	if total == 0 {
+		return -1
+	}
+
 	return 100 * (total - idle) / total
 }
 

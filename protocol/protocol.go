@@ -26,8 +26,8 @@ type Block struct {
 	Urgent              bool   `json:"urgent,omitempty"`
 	Name                string `json:"name,omitempty"`
 	Instance            string `json:"instance,omitempty"`
-	Seperator           bool   `json:"separator,omitempty"`
-	SeperatorBlockWidth int    `json:"separator_block_width,omitempty"`
+	Separator           bool   `json:"separator"`
+	SeparatorBlockWidth int    `json:"separator_block_width,omitempty"`
 }
 
 type ClickEvent struct {

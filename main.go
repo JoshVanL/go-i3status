@@ -8,6 +8,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/battery"
 	"github.com/joshvanl/go-i3status/modules/cpu"
 	"github.com/joshvanl/go-i3status/modules/date"
+	"github.com/joshvanl/go-i3status/modules/disk"
 	"github.com/joshvanl/go-i3status/modules/memory"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
@@ -18,6 +19,7 @@ var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
 		wallpaper.Wallpaper,
 		memory.Memory,
+		disk.Disk,
 		cpu.CPU,
 		battery.Battery,
 		date.Date,
@@ -38,7 +40,8 @@ func main() {
 			Color:               "#dddddddd",
 			Background:          "#2c2c2ccc",
 			Border:              "#2c2c2ccc",
-			SeperatorBlockWidth: 30,
+			SeparatorBlockWidth: 30,
+			Separator:           true,
 		}
 		h.RegisterBlock(b)
 		go f(b, h)
