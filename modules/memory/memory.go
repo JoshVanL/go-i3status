@@ -14,9 +14,9 @@ func Memory(block *protocol.Block, h *handler.Handler) {
 	block.Name = "memory"
 
 	for {
-		mem, per := h.SysInfo().Memory()
-		block.FullText = fmt.Sprintf(" %v %v (%d)",
-			mem[0], mem[1], per)
+		mem := h.SysInfo().Memory()
+		block.FullText = fmt.Sprintf(" %.2f/%.2f (%.1f%%)",
+			mem[0], mem[1], mem[2])
 
 		h.Tick()
 

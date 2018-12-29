@@ -9,14 +9,13 @@ import (
 )
 
 func CPU(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Second / 2).C
+	ticker := time.NewTicker(time.Second * 3).C
 
 	block.Name = "cpu"
 
 	for {
-		block.FullText = fmt.Sprintf("cpu %v %v",
-			h.SysInfo().CPULoads()[0],
-			h.SysInfo().CPULoads()[2])
+		block.FullText = fmt.Sprintf("cpu %.2f%%",
+			h.SysInfo().CPULoad())
 
 		h.Tick()
 

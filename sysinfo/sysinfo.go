@@ -1,8 +1,11 @@
 package sysinfo
 
-//#include <stdlib.h>
-import "C"
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,9 +13,13 @@ import (
 )
 
 type SysInfo struct {
-	cpuLoads [3]uint64
-	memUse   [2]uint64
-	mu       sync.Mutex
+	cpuIdleOld  uint64
+	cpuIdleNew  uint64
+	cpuTotalOld uint64
+	cpuTotalNew uint64
+
+	memUse [2]uint64
+	mu     sync.Mutex
 }
 
 func New() (*SysInfo, error) {
@@ -23,7 +30,7 @@ func New() (*SysInfo, error) {
 	}
 
 	s := &SysInfo{
-		cpuLoads: sysinfo_t.Loads,
+		memUse: [2]uint64{sysinfo_t.Freeram, sysinfo_t.Totalram},
 	}
 
 	go s.run()
@@ -36,13 +43,14 @@ func (s *SysInfo) run() {
 	var sysinfo_t unix.Sysinfo_t
 
 	for {
+		s.updateCPU()
+
 		err := unix.Sysinfo(&sysinfo_t)
 		if err != nil {
 			continue
 		}
 
 		s.mu.Lock()
-		s.cpuLoads = sysinfo_t.Loads
 		s.memUse = [2]uint64{sysinfo_t.Freeram, sysinfo_t.Totalram}
 		s.mu.Unlock()
 
@@ -50,36 +58,65 @@ func (s *SysInfo) run() {
 	}
 }
 
-func (s *SysInfo) Memory() ([2]uint64, int) {
+func (s *SysInfo) Memory() [3]float64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.memUse, int(s.memUse[0] / s.memUse[1])
+	u, g := float64(s.memUse[0])/(1024*1024*1024), float64(s.memUse[1])/(1024*1024*1024)
+
+	return [3]float64{u, g, (u / g) * 100}
 }
 
-//const loadScale = 65536.0 // LINUX_SYSINFO_LOADS_SCALE
-const loadScale = 1.0 // LINUX_SYSINFO_LOADS_SCALE
-
-func (s *SysInfo) CPULoads() [3]float64 {
+func (s *SysInfo) CPULoad() float64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	loads := [3]float64{
-		float64(s.cpuLoads[0]) / loadScale,
-		float64(s.cpuLoads[1]) / loadScale,
-		float64(s.cpuLoads[2]) / loadScale,
-	}
+	idle := float64(s.cpuIdleNew - s.cpuIdleOld)
+	total := float64(s.cpuTotalNew - s.cpuTotalOld)
+	return 100 * (total - idle) / total
+}
 
-	_, err := getloadavg(&loads, 3)
+func (s *SysInfo) updateCPU() {
+	f, err := ioutil.ReadFile("/proc/stat")
 	if err != nil {
 		panic(err)
 	}
 
-	return loads
-}
+	lines := bytes.Split(f, []byte{'\n'})
+	if len(lines) < 1 {
+		panic("failed to read /proc/stat")
+		panic(fmt.Sprintf("%s", lines[0]))
+	}
 
-// To allow tests to mock out getloadavg.
-var getloadavg = func(out *[3]float64, count int) (int, error) {
-	read, err := C.getloadavg((*C.double)(&out[0]), (C.int)(count))
-	return int(read), err
+	fields := strings.Fields(string(lines[0]))
+	if len(fields) == 0 || fields[0] != "cpu" {
+		panic("failed to read /proc/stat")
+	}
+
+	var idle, total uint64
+	for i := 1; i < len(fields); i++ {
+		val, err := strconv.ParseUint(fields[i], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+
+		total += val          // tally up all the numbers to get total ticks
+		if i == 4 || i == 5 { // idle is the 5th field in the cpu line
+			idle += val
+		}
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.cpuIdleOld == 0 {
+		s.cpuIdleOld = idle
+		s.cpuTotalOld = total
+	} else {
+		s.cpuIdleOld = s.cpuIdleNew
+		s.cpuTotalOld = s.cpuTotalNew
+	}
+
+	s.cpuIdleNew = idle
+	s.cpuTotalNew = total
 }
