@@ -9,6 +9,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/cpu"
 	"github.com/joshvanl/go-i3status/modules/date"
 	"github.com/joshvanl/go-i3status/modules/disk"
+	"github.com/joshvanl/go-i3status/modules/iface"
 	"github.com/joshvanl/go-i3status/modules/memory"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
@@ -20,6 +21,7 @@ var (
 		wallpaper.Wallpaper,
 		memory.Memory,
 		disk.Disk,
+		iface.IFace,
 		cpu.CPU,
 		battery.Battery,
 		date.Date,
@@ -30,7 +32,7 @@ var (
 func main() {
 	h, err := handler.New()
 	if err != nil {
-		fmt.Printf("error creating handler: %s", err)
+		fmt.Fprint(os.Stderr, "error creating handler: ", err)
 		os.Exit(1)
 	}
 

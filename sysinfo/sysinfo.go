@@ -2,7 +2,6 @@ package sysinfo
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -83,25 +82,24 @@ func (s *SysInfo) CPULoad() float64 {
 func (s *SysInfo) updateCPU() {
 	f, err := ioutil.ReadFile("/proc/stat")
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	lines := bytes.Split(f, []byte{'\n'})
 	if len(lines) < 1 {
-		panic("failed to read /proc/stat")
-		panic(fmt.Sprintf("%s", lines[0]))
+		return
 	}
 
 	fields := strings.Fields(string(lines[0]))
 	if len(fields) == 0 || fields[0] != "cpu" {
-		panic("failed to read /proc/stat")
+		return
 	}
 
 	var idle, total uint64
 	for i := 1; i < len(fields); i++ {
 		val, err := strconv.ParseUint(fields[i], 10, 64)
 		if err != nil {
-			panic(err)
+			return
 		}
 
 		total += val          // tally up all the numbers to get total ticks

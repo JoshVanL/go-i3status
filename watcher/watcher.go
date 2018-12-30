@@ -1,27 +1,24 @@
 package watcher
 
 import (
+	"net"
+	"os"
+	"path/filepath"
 	"sync"
 	"syscall"
 	"unsafe"
 )
 
 const (
-	sys_IN_MOVED_TO    uint32 = syscall.IN_MOVED_TO
-	sys_IN_CREATE      uint32 = syscall.IN_CREATE
-	sys_IN_MOVED_FROM  uint32 = syscall.IN_MOVED_FROM
-	sys_IN_ATTRIB      uint32 = syscall.IN_ATTRIB
-	sys_IN_MODIFY      uint32 = syscall.IN_MODIFY
-	sys_IN_DELETE_SELF uint32 = syscall.IN_DELETE_SELF
-	sys_IN_DELETE      uint32 = syscall.IN_DELETE
-	sys_IN_MOVE_SELF   uint32 = syscall.IN_MOVE_SELF
+	socketDir = "/var/run/go-i3status"
 
-	sys_AGNOSTIC_EVENTS = sys_IN_MOVED_TO | sys_IN_MOVED_FROM | sys_IN_CREATE | sys_IN_ATTRIB | sys_IN_MODIFY | sys_IN_MOVE_SELF | sys_IN_DELETE | sys_IN_DELETE_SELF
+	sys_IN_MODIFY uint32 = syscall.IN_MODIFY
 )
 
 type Watcher struct {
 	fd       int
 	watching map[int32]chan struct{}
+	sockets  map[string]net.Listener
 	mu       sync.Mutex
 }
 
@@ -31,9 +28,14 @@ func New() (*Watcher, error) {
 		return nil, err
 	}
 
+	if err := clearSockets(); err != nil {
+		return nil, err
+	}
+
 	w := &Watcher{
 		fd:       fd,
 		watching: make(map[int32]chan struct{}),
+		sockets:  make(map[string]net.Listener),
 	}
 
 	go w.run()
@@ -67,6 +69,32 @@ func (w *Watcher) run() {
 	}
 }
 
+func (w *Watcher) AddSocket(module string, ch chan struct{}) error {
+	path := filepath.Join(socketDir, module+".sock")
+
+	l, err := net.Listen("unix", path)
+	if err != nil {
+		return err
+	}
+
+	w.mu.Lock()
+	w.sockets[path] = l
+	w.mu.Unlock()
+
+	go func() {
+		for {
+			c, _ := l.Accept()
+			ch <- struct{}{}
+
+			if c != nil {
+				c.Close()
+			}
+		}
+	}()
+
+	return nil
+}
+
 func (w *Watcher) AddFile(path string, ch chan struct{}) error {
 	wd, err := syscall.InotifyAddWatch(w.fd, path, sys_IN_MODIFY)
 	if err != nil {
@@ -78,4 +106,29 @@ func (w *Watcher) AddFile(path string, ch chan struct{}) error {
 	w.mu.Unlock()
 
 	return nil
+}
+
+func clearSockets() error {
+	files, err := filepath.Glob(filepath.Join(socketDir, "*"))
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		err = os.RemoveAll(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (w *Watcher) Kill() {
+	// we don't unlock because we don't want more watchers
+	w.mu.Lock()
+	for s, l := range w.sockets {
+		l.Close()
+		os.Remove(s)
+	}
 }

@@ -2,7 +2,6 @@ package battery
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -15,8 +14,6 @@ import (
 const (
 	path        = "/sys/class/power_supply"
 	batteryName = "BAT0"
-	// TODO: do proper path
-	watchPath = "/home/josh/go/src/github.com/joshvanl/go-i3status/battery_watch"
 )
 
 func Battery(block *protocol.Block, h *handler.Handler) {
@@ -30,15 +27,9 @@ func Battery(block *protocol.Block, h *handler.Handler) {
 	setBatteryString(block, status, capacity)
 	h.Tick()
 
-	// TODO: use signals
-	_, err := os.Create(watchPath)
+	ch, err := h.WatchSocket("battery")
 	if err != nil {
-		panic(err)
-	}
-
-	ch, err := h.WatchFile(watchPath)
-	if err != nil {
-		panic(err)
+		h.Kill(err)
 	}
 
 	ticker := time.NewTicker(time.Minute * 3).C

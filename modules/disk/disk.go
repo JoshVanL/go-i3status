@@ -15,11 +15,10 @@ func Disk(block *protocol.Block, h *handler.Handler) {
 	block.Name = "disk"
 
 	for {
-
 		var stat syscall.Statfs_t
 		err := syscall.Statfs("/", &stat)
 		if err != nil {
-			panic(err)
+			h.Kill(err)
 		}
 
 		block.FullText = fmt.Sprintf(" %.2fG",

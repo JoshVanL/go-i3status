@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -117,9 +118,15 @@ func (h *Handler) clickEvents() {
 	}
 }
 
-func (h *Handler) WatchFile(path string) (chan struct{}, error) {
+func (h *Handler) WatchFile(path string) (<-chan struct{}, error) {
 	ch := make(chan struct{})
 	err := h.watcher.AddFile(path, ch)
+	return ch, err
+}
+
+func (h *Handler) WatchSocket(module string) (<-chan struct{}, error) {
+	ch := make(chan struct{})
+	err := h.watcher.AddSocket(module, ch)
 	return ch, err
 }
 
@@ -127,23 +134,31 @@ func (h *Handler) SysInfo() *sysinfo.SysInfo {
 	return h.sysinfo
 }
 
+func (h *Handler) Kill(err error) {
+	h.watcher.Kill()
+	fmt.Fprint(os.Stderr, "\ni3-gostatus was killed: ", err, "\n")
+	os.Exit(1)
+}
+
 func (h *Handler) signalHandler() {
 	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGCONT, syscall.SIGSTOP, syscall.SIGKILL)
+	signal.Notify(sig, syscall.SIGCONT, syscall.SIGSTOP, syscall.SIGKILL, syscall.SIGINT)
 
 	for s := range sig {
 		switch s {
 		case syscall.SIGCONT:
 			h.paused = false
+			break
 
 		case syscall.SIGSTOP:
 			h.paused = true
+			break
 
-		case syscall.SIGKILL:
-			os.Exit(1)
+		case syscall.SIGKILL, syscall.SIGINT:
+			h.Kill(fmt.Errorf("got signal %s", s))
 
 		default:
-			continue
+			break
 		}
 	}
 }

@@ -17,7 +17,7 @@ func Wallpaper(block *protocol.Block, h *handler.Handler) {
 
 	ch, err := h.WatchFile(wallPath)
 	if err != nil {
-		panic(err)
+		h.Kill(err)
 	}
 
 	for {
