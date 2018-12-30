@@ -29,8 +29,7 @@ type netStat struct {
 
 func Bandwidth(block *protocol.Block, h *handler.Handler) {
 	ticker := time.NewTicker(time.Second * secs).C
-	ch, err := h.WatchSocket("iface")
-	h.Must(err)
+	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+1"])
 
 	block.Name = "bandwidth"
 	block.Separator = false

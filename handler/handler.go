@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
 	"sync"
 	"syscall"
 
@@ -124,10 +125,10 @@ func (h *Handler) WatchFile(path string) (<-chan struct{}, error) {
 	return ch, err
 }
 
-func (h *Handler) WatchSocket(module string) (<-chan struct{}, error) {
-	ch := make(chan struct{})
-	err := h.watcher.AddSocket(module, ch)
-	return ch, err
+func (h *Handler) WatchSignal(sig syscall.Signal) <-chan os.Signal {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, sig)
+	return ch
 }
 
 func (h *Handler) SysInfo() *sysinfo.SysInfo {
@@ -139,7 +140,6 @@ func (h *Handler) Must(err error) {
 		return
 	}
 
-	h.watcher.Kill()
 	errors.Kill(fmt.Errorf("go-i3status was killed: %v\n", err))
 }
 

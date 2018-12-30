@@ -15,8 +15,7 @@ const (
 func IFace(block *protocol.Block, h *handler.Handler) {
 	block.Name = "iface"
 
-	ch, err := h.WatchSocket("iface")
-	h.Must(err)
+	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+1"])
 
 	for {
 		iface, err := net.InterfaceByName(ifaceName)

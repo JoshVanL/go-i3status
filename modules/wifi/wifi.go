@@ -18,8 +18,7 @@ const (
 
 func Wifi(block *protocol.Block, h *handler.Handler) {
 	ticker := time.NewTicker(time.Minute).C
-	ch, err := h.WatchSocket("iface")
-	h.Must(err)
+	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+1"])
 
 	block.Name = "wifi"
 	block.Separator = false

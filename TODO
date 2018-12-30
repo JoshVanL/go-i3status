@@ -1,3 +1,9 @@
 Use a shared scheduler for cron type modules
 Install script to write hooks
 Have a unified is iface down func
+
+cpu temp
+backlight
+volume
+mic
+bluetooth

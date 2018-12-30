@@ -24,8 +24,7 @@ var (
 func Battery(block *protocol.Block, h *handler.Handler) {
 	block.Name = "battery"
 
-	ch, err := h.WatchSocket("battery")
-	h.Must(err)
+	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+2"])
 
 	ticker := time.NewTicker(time.Minute * 3).C
 	tickNow := true
