@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/signal"
 	"sync"
 	"syscall"
 
@@ -141,21 +140,20 @@ func (h *Handler) Kill(err error) {
 }
 
 func (h *Handler) signalHandler() {
-	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGCONT, syscall.SIGSTOP, syscall.SIGKILL, syscall.SIGINT)
+	ch := errors.NewSignalHandler()
 
-	for s := range sig {
+	for s := range ch {
 		switch s {
-		case syscall.SIGCONT:
+		case 1:
 			h.paused = false
 			break
 
-		case syscall.SIGSTOP:
+		case 0:
 			h.paused = true
 			break
 
-		case syscall.SIGKILL, syscall.SIGINT:
-			h.Kill(fmt.Errorf("got signal %s", s))
+		case -1:
+			h.Kill(fmt.Errorf("got signal interupt"))
 
 		default:
 			break
