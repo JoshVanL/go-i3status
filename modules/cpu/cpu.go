@@ -9,7 +9,7 @@ import (
 )
 
 func CPU(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Second * 3).C
+	ticker := time.NewTicker(time.Second * 5).C
 
 	block.Name = "cpu"
 

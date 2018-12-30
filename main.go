@@ -5,6 +5,7 @@ import (
 
 	"github.com/joshvanl/go-i3status/errors"
 	"github.com/joshvanl/go-i3status/handler"
+	"github.com/joshvanl/go-i3status/modules/bandwidth"
 	"github.com/joshvanl/go-i3status/modules/battery"
 	"github.com/joshvanl/go-i3status/modules/cpu"
 	"github.com/joshvanl/go-i3status/modules/date"
@@ -23,6 +24,7 @@ var (
 		memory.Memory,
 		disk.Disk,
 		wifi.Wifi,
+		bandwidth.Bandwidth,
 		iface.IFace,
 		cpu.CPU,
 		battery.Battery,

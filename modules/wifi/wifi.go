@@ -23,7 +23,7 @@ func Wifi(block *protocol.Block, h *handler.Handler) {
 
 	block.Name = "wifi"
 	block.Separator = false
-	block.SeparatorBlockWidth = 15
+	block.SeparatorBlockWidth = 10
 
 	for {
 		setString(block, h)

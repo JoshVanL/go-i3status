@@ -16,8 +16,8 @@ type Header struct {
 type Align string
 
 type Block struct {
-	FullText            string `json:"full_text"`
-	ShortText           string `json:"short_text"`
+	FullText string `json:"full_text"`
+	//ShortText           string `json:"short_text"`
 	Color               string `json:"color"`
 	Background          string `json:"background,omitempty"`
 	Border              string `json:"border,omitempty"`
