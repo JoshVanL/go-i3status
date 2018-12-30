@@ -15,10 +15,15 @@ const (
 	sys_IN_MODIFY uint32 = syscall.IN_MODIFY
 )
 
+type socketPair struct {
+	chs []chan struct{}
+	l   net.Listener
+}
+
 type Watcher struct {
 	fd       int
 	watching map[int32]chan struct{}
-	sockets  map[string]net.Listener
+	sockets  map[string]*socketPair
 	mu       sync.Mutex
 }
 
@@ -35,7 +40,7 @@ func New() (*Watcher, error) {
 	w := &Watcher{
 		fd:       fd,
 		watching: make(map[int32]chan struct{}),
-		sockets:  make(map[string]net.Listener),
+		sockets:  make(map[string]*socketPair),
 	}
 
 	go w.run()
@@ -72,19 +77,38 @@ func (w *Watcher) run() {
 func (w *Watcher) AddSocket(module string, ch chan struct{}) error {
 	path := filepath.Join(socketDir, module+".sock")
 
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if p, ok := w.sockets[path]; ok {
+		p.chs = append(p.chs, ch)
+		return nil
+	}
+
 	l, err := net.Listen("unix", path)
 	if err != nil {
 		return err
 	}
 
-	w.mu.Lock()
-	w.sockets[path] = l
-	w.mu.Unlock()
+	w.sockets[path] = &socketPair{[]chan struct{}{ch}, l}
 
 	go func() {
 		for {
 			c, _ := l.Accept()
-			ch <- struct{}{}
+
+			w.mu.Lock()
+
+			p, ok := w.sockets[path]
+			if !ok {
+				w.mu.Unlock()
+				continue
+			}
+
+			for _, ch := range p.chs {
+				ch <- struct{}{}
+			}
+
+			w.mu.Unlock()
 
 			if c != nil {
 				c.Close()
@@ -127,8 +151,8 @@ func clearSockets() error {
 func (w *Watcher) Kill() {
 	// we don't unlock because we don't want more watchers
 	w.mu.Lock()
-	for s, l := range w.sockets {
-		l.Close()
+	for s, p := range w.sockets {
+		p.l.Close()
 		os.Remove(s)
 	}
 }

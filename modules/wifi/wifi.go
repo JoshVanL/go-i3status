@@ -17,7 +17,9 @@ const (
 )
 
 func Wifi(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Second * 15).C
+	ticker := time.NewTicker(time.Minute).C
+	ch, err := h.WatchSocket("iface")
+	h.Must(err)
 
 	block.Name = "wifi"
 	block.Separator = false
@@ -27,7 +29,11 @@ func Wifi(block *protocol.Block, h *handler.Handler) {
 		setString(block, h)
 		h.Tick()
 
-		<-ticker
+		select {
+		case <-ticker:
+		case <-ch:
+			time.Sleep(time.Second * 3)
+		}
 	}
 }
 
@@ -42,7 +48,7 @@ func setString(block *protocol.Block, h *handler.Handler) {
 	if n >= 80 {
 		block.Color = "#aaddaa"
 	} else if n >= 60 {
-		block.Color = "#fff600"
+		block.Color = "#ffaa33"
 	} else if n >= 40 {
 		block.Color = "#ffae88"
 	} else {
@@ -75,7 +81,6 @@ func wirelessInt(h *handler.Handler) int {
 			return -1
 		}
 
-		//return fmt.Sprintf(" %.0f%%", (n * 100 / 70))
 		return int(n * 100 / 70)
 	}
 
