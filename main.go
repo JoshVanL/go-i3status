@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/joshvanl/go-i3status/errors"
 	"github.com/joshvanl/go-i3status/handler"
 	"github.com/joshvanl/go-i3status/modules/battery"
 	"github.com/joshvanl/go-i3status/modules/cpu"
@@ -32,8 +32,7 @@ var (
 func main() {
 	h, err := handler.New()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "error creating handler: ", err)
-		os.Exit(1)
+		errors.Kill(fmt.Errorf("error creating handler: %s\n", err))
 	}
 
 	for _, f := range enabledBlocks {

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/joshvanl/go-i3status/errors"
 	"github.com/joshvanl/go-i3status/protocol"
 	"github.com/joshvanl/go-i3status/sysinfo"
 	"github.com/joshvanl/go-i3status/watcher"
@@ -136,8 +137,7 @@ func (h *Handler) SysInfo() *sysinfo.SysInfo {
 
 func (h *Handler) Kill(err error) {
 	h.watcher.Kill()
-	fmt.Fprint(os.Stderr, "\ni3-gostatus was killed: ", err, "\n")
-	os.Exit(1)
+	errors.Kill(fmt.Errorf("go-i3status was killed: %v\n", err))
 }
 
 func (h *Handler) signalHandler() {
