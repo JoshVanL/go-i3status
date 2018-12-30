@@ -10,7 +10,7 @@ import (
 )
 
 func Disk(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Minute * 180).C
+	ticker := time.NewTicker(time.Minute * 60).C
 
 	block.Name = "disk"
 

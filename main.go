@@ -13,6 +13,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/memory"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
+	"github.com/joshvanl/go-i3status/modules/wifi"
 	"github.com/joshvanl/go-i3status/protocol"
 )
 
@@ -21,6 +22,7 @@ var (
 		wallpaper.Wallpaper,
 		memory.Memory,
 		disk.Disk,
+		wifi.Wifi,
 		iface.IFace,
 		cpu.CPU,
 		battery.Battery,
