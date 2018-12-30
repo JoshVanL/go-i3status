@@ -16,26 +16,23 @@ const (
 	batteryName = "BAT0"
 )
 
+var (
+	capPath  = filepath.Join(path, batteryName, "capacity")
+	statPath = filepath.Join(path, batteryName, "status")
+)
+
 func Battery(block *protocol.Block, h *handler.Handler) {
 	block.Name = "battery"
 
-	capPath := filepath.Join(path, batteryName, "capacity")
-	statPath := filepath.Join(path, batteryName, "status")
-
-	status := utils.ReadFile(statPath)
-	capacity := utils.ReadFile(capPath)
-	setBatteryString(block, status, capacity)
-	h.Tick()
-
 	ch, err := h.WatchSocket("battery")
-	if err != nil {
-		h.Kill(err)
-	}
+	h.Must(err)
 
 	ticker := time.NewTicker(time.Minute * 3).C
+	tickNow := true
 
 	for {
-		tickNow := false
+		status, capacity := getFiles(h)
+		setBatteryString(block, status, capacity)
 
 		select {
 		case <-ch:
@@ -43,14 +40,24 @@ func Battery(block *protocol.Block, h *handler.Handler) {
 		case <-ticker:
 		}
 
-		status := utils.ReadFile(statPath)
-		capacity := utils.ReadFile(capPath)
-		setBatteryString(block, status, capacity)
-
 		if tickNow {
 			h.Tick()
 		}
 	}
+}
+
+func getFiles(h *handler.Handler) (status, capacity []byte) {
+	status, err := utils.ReadFile(statPath)
+	h.Must(err)
+
+	capacity, err = utils.ReadFile(capPath)
+	h.Must(err)
+
+	if string(capacity) == "100" {
+		status = []byte("full")
+	}
+
+	return status, capacity
 }
 
 func setBatteryString(b *protocol.Block, status, capacity []byte) {

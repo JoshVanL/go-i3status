@@ -17,9 +17,7 @@ func Disk(block *protocol.Block, h *handler.Handler) {
 	for {
 		var stat syscall.Statfs_t
 		err := syscall.Statfs("/", &stat)
-		if err != nil {
-			h.Kill(err)
-		}
+		h.Must(err)
 
 		block.FullText = fmt.Sprintf(" %.2fG",
 			float64(stat.Bavail*uint64(stat.Bsize))/(1024*1024*1024))

@@ -134,7 +134,11 @@ func (h *Handler) SysInfo() *sysinfo.SysInfo {
 	return h.sysinfo
 }
 
-func (h *Handler) Kill(err error) {
+func (h *Handler) Must(err error) {
+	if err == nil {
+		return
+	}
+
 	h.watcher.Kill()
 	errors.Kill(fmt.Errorf("go-i3status was killed: %v\n", err))
 }
@@ -153,7 +157,7 @@ func (h *Handler) signalHandler() {
 			break
 
 		case -1:
-			h.Kill(fmt.Errorf("got signal interupt"))
+			h.Must(fmt.Errorf("got signal interupt"))
 
 		default:
 			break

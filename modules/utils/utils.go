@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 )
 
-func ReadFile(path string) []byte {
+func ReadFile(path string) ([]byte, error) {
 	f, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return bytes.TrimSpace(f)
+	return bytes.TrimSpace(f), nil
 }
