@@ -12,6 +12,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/disk"
 	"github.com/joshvanl/go-i3status/modules/iface"
 	"github.com/joshvanl/go-i3status/modules/memory"
+	"github.com/joshvanl/go-i3status/modules/temp"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
 	"github.com/joshvanl/go-i3status/modules/wifi"
@@ -26,6 +27,7 @@ var (
 		wifi.Wifi,
 		bandwidth.Bandwidth,
 		iface.IFace,
+		temp.Temp,
 		cpu.CPU,
 		battery.Battery,
 		date.Date,
