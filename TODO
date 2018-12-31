@@ -7,3 +7,13 @@ backlight
 volume
 mic
 bluetooth
+
+
+Scheduler
+---------
+Have deduplicated list of funcs
+When calling the funcs because of the timer and the scheduler is being called again to call funcs, add them to the list of funcs to wait for before calling for another tick
+
+
+
+Fix deduplication

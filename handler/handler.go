@@ -11,6 +11,7 @@ import (
 
 	"github.com/joshvanl/go-i3status/errors"
 	"github.com/joshvanl/go-i3status/protocol"
+	"github.com/joshvanl/go-i3status/scheduler"
 	"github.com/joshvanl/go-i3status/sysinfo"
 	"github.com/joshvanl/go-i3status/watcher"
 )
@@ -23,12 +24,15 @@ type Handler struct {
 	registeredEvents map[string][]func(*protocol.ClickEvent)
 	watcher          *watcher.Watcher
 	sysinfo          *sysinfo.SysInfo
+	scheduler        *scheduler.Scheduler
 
 	paused     bool
 	blocksLock sync.Mutex
 }
 
 func New() (*Handler, error) {
+	tick := make(chan struct{})
+
 	w, err := watcher.New()
 	if err != nil {
 		return nil, err
@@ -46,10 +50,11 @@ func New() (*Handler, error) {
 		registeredEvents: make(map[string][]func(*protocol.ClickEvent)),
 		watcher:          w,
 		sysinfo:          s,
+		scheduler:        scheduler.New(tick),
 	}
 
 	go h.signalHandler()
-	go h.clickEvents()
+	//go h.clickEvents()
 
 	b, err := json.Marshal(&protocol.Header{
 		Version:        1,
@@ -62,6 +67,13 @@ func New() (*Handler, error) {
 	}
 
 	h.stdout.Write(append(b, '['))
+
+	go func() {
+		for {
+			<-tick
+			h.Tick()
+		}
+	}()
 
 	return h, nil
 }
@@ -141,6 +153,10 @@ func (h *Handler) Must(err error) {
 	}
 
 	errors.Kill(fmt.Errorf("go-i3status was killed: %v\n", err))
+}
+
+func (h *Handler) Scheduler() *scheduler.Scheduler {
+	return h.scheduler
 }
 
 func (h *Handler) signalHandler() {

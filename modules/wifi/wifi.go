@@ -24,16 +24,20 @@ func Wifi(block *protocol.Block, h *handler.Handler) {
 	block.Separator = false
 	block.SeparatorBlockWidth = 10
 
-	for {
-		setString(block, h)
-		h.Tick()
+	go func() {
 
-		select {
-		case <-ticker:
-		case <-ch:
-			time.Sleep(time.Second * 3)
+		for {
+			setString(block, h)
+			h.Tick()
+
+			select {
+			case <-ticker:
+			case <-ch:
+				time.Sleep(time.Second * 3)
+			}
 		}
-	}
+
+	}()
 }
 
 func setString(block *protocol.Block, h *handler.Handler) {

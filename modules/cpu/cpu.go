@@ -13,14 +13,16 @@ func CPU(block *protocol.Block, h *handler.Handler) {
 
 	block.Name = "cpu"
 
-	for {
-		load := h.SysInfo().CPULoad()
+	go func() {
+		for {
+			load := h.SysInfo().CPULoad()
 
-		if load != -1 {
-			block.FullText = fmt.Sprintf("cpu %.2f%%", load)
-			h.Tick()
+			if load != -1 {
+				block.FullText = fmt.Sprintf("cpu %.2f%%", load)
+				h.Tick()
+			}
+
+			<-ticker
 		}
-
-		<-ticker
-	}
+	}()
 }

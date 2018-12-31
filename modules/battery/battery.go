@@ -21,58 +21,61 @@ var (
 	statPath = filepath.Join(path, batteryName, "status")
 )
 
+type battery struct {
+	block *protocol.Block
+	h     *handler.Handler
+}
+
 func Battery(block *protocol.Block, h *handler.Handler) {
 	block.Name = "battery"
 
 	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+2"])
 
-	ticker := time.NewTicker(time.Minute * 3).C
-	tickNow := true
-
-	for {
-		status, capacity := getFiles(h)
-		setBatteryString(block, status, capacity)
-
-		select {
-		case <-ch:
-			tickNow = true
-		case <-ticker:
-		}
-
-		if tickNow {
-			h.Tick()
-		}
+	b := &battery{
+		block: block,
+		h:     h,
 	}
+
+	h.Scheduler().Register(time.Minute*3, b.setBatteryString)
+
+	go func() {
+		for {
+			b.setBatteryString()
+			b.h.Tick()
+			<-ch
+		}
+	}()
 }
 
-func getFiles(h *handler.Handler) (status, capacity []byte) {
+func (b *battery) setBatteryString() {
+	status, capacity := b.getFiles()
+	i, err := strconv.Atoi(string(capacity))
+	if err != nil {
+		b.block.FullText = err.Error()
+		return
+	}
+
+	bat := getIcon(b.block, i)
+	var charging string
+	if string(status) == "Charging" {
+		charging = " "
+	}
+
+	b.block.FullText = fmt.Sprintf("%s%s %s%%", bat, charging, capacity)
+}
+
+func (b *battery) getFiles() (status, capacity []byte) {
 	status, err := utils.ReadFile(statPath)
-	h.Must(err)
+	b.h.Must(err)
 
 	capacity, err = utils.ReadFile(capPath)
-	h.Must(err)
+	b.h.Must(err)
 
 	if string(capacity) == "100" {
 		status = []byte("full")
 	}
 
 	return status, capacity
-}
-
-func setBatteryString(b *protocol.Block, status, capacity []byte) {
-	i, err := strconv.Atoi(string(capacity))
-	if err != nil {
-		b.FullText = err.Error()
-		return
-	}
-
-	bat := getIcon(b, i)
-	var charging string
-	if string(status) == "Charging" {
-		charging = " "
-	}
-
-	b.FullText = fmt.Sprintf("%s%s %s%%", bat, charging, capacity)
 }
 
 func getIcon(b *protocol.Block, capacity int) string {

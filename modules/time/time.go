@@ -23,16 +23,19 @@ func Time(block *protocol.Block, h *handler.Handler) {
 	}
 
 	till := time.Date(now.Year(), now.Month(), now.Day(), hour, min, 0, 0, now.Location())
-	time.Sleep(time.Until(till))
+	go func() {
+		time.Sleep(time.Until(till))
 
-	block.FullText = getTimeString(time.Now())
-	h.Tick()
-
-	ticker := time.NewTicker(time.Minute)
-	for t := range ticker.C {
-		block.FullText = getTimeString(t)
+		block.FullText = getTimeString(time.Now())
 		h.Tick()
-	}
+
+		ticker := time.NewTicker(time.Minute)
+
+		for t := range ticker.C {
+			block.FullText = getTimeString(t)
+			h.Tick()
+		}
+	}()
 }
 
 func getTimeString(t time.Time) string {

@@ -18,13 +18,15 @@ func Wallpaper(block *protocol.Block, h *handler.Handler) {
 	ch, err := h.WatchFile(wallPath)
 	h.Must(err)
 
-	for {
-		f, err := utils.ReadFile(wallPath)
-		h.Must(err)
+	go func() {
+		for {
+			f, err := utils.ReadFile(wallPath)
+			h.Must(err)
 
-		block.FullText = fmt.Sprintf(" %s", f)
-		h.Tick()
+			block.FullText = fmt.Sprintf(" %s", f)
+			h.Tick()
 
-		<-ch
-	}
+			<-ch
+		}
+	}()
 }

@@ -14,15 +14,18 @@ func Disk(block *protocol.Block, h *handler.Handler) {
 
 	block.Name = "disk"
 
-	for {
-		var stat syscall.Statfs_t
-		err := syscall.Statfs("/", &stat)
-		h.Must(err)
+	go func() {
 
-		block.FullText = fmt.Sprintf(" %.2fG",
-			float64(stat.Bavail*uint64(stat.Bsize))/(1024*1024*1024))
-		h.Tick()
+		for {
+			var stat syscall.Statfs_t
+			err := syscall.Statfs("/", &stat)
+			h.Must(err)
 
-		<-ticker
-	}
+			block.FullText = fmt.Sprintf(" %.2fG",
+				float64(stat.Bavail*uint64(stat.Bsize))/(1024*1024*1024))
+			h.Tick()
+
+			<-ticker
+		}
+	}()
 }

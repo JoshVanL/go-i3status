@@ -51,10 +51,10 @@ func main() {
 			Separator:           true,
 		}
 		h.RegisterBlock(b)
-		go f(b, h)
+		f(b, h)
 	}
 
-	h.Tick()
+	h.Scheduler().Run()
 
 	select {}
 }
