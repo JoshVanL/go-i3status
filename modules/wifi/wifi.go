@@ -17,48 +17,44 @@ const (
 )
 
 func Wifi(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Minute).C
-	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+1"])
-
 	block.Name = "wifi"
 	block.Separator = false
 	block.SeparatorBlockWidth = 10
 
-	go func() {
+	update := func() {
+		n := wirelessInt(h)
 
-		for {
-			setString(block, h)
-			h.Tick()
-
-			select {
-			case <-ticker:
-			case <-ch:
-				time.Sleep(time.Second * 3)
-			}
+		if n == -1 {
+			block.FullText = ""
+			return
 		}
 
+		if n >= 80 {
+			block.Color = "#aaddaa"
+		} else if n >= 60 {
+			block.Color = "#ffaa33"
+		} else if n >= 40 {
+			block.Color = "#ffae88"
+		} else {
+			block.Color = "#ff0000"
+		}
+
+		block.FullText = fmt.Sprintf(" %d%%", n)
+	}
+
+	h.Scheduler().Register(time.Minute, update)
+
+	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+1"])
+
+	go func() {
+		for {
+			update()
+			h.Tick()
+
+			<-ch
+			time.Sleep(time.Second * 3)
+		}
 	}()
-}
-
-func setString(block *protocol.Block, h *handler.Handler) {
-	n := wirelessInt(h)
-
-	if n == -1 {
-		block.FullText = ""
-		return
-	}
-
-	if n >= 80 {
-		block.Color = "#aaddaa"
-	} else if n >= 60 {
-		block.Color = "#ffaa33"
-	} else if n >= 40 {
-		block.Color = "#ffae88"
-	} else {
-		block.Color = "#ff0000"
-	}
-
-	block.FullText = fmt.Sprintf(" %d%%", n)
 }
 
 func wirelessInt(h *handler.Handler) int {

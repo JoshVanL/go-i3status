@@ -23,6 +23,7 @@ func Time(block *protocol.Block, h *handler.Handler) {
 	}
 
 	till := time.Date(now.Year(), now.Month(), now.Day(), hour, min, 0, 0, now.Location())
+
 	go func() {
 		time.Sleep(time.Until(till))
 

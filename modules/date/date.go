@@ -16,6 +16,7 @@ func Date(block *protocol.Block, h *handler.Handler) {
 	h.Tick()
 
 	till := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 59, now.Location())
+
 	go func() {
 		time.Sleep(time.Until(till))
 
@@ -29,7 +30,6 @@ func Date(block *protocol.Block, h *handler.Handler) {
 			h.Tick()
 		}
 	}()
-
 }
 
 func getDateString(t time.Time) string {

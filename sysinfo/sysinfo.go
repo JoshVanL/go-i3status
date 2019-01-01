@@ -2,6 +2,7 @@ package sysinfo
 
 import (
 	"bytes"
+	//"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -38,7 +39,8 @@ func New() (*SysInfo, error) {
 }
 
 func (s *SysInfo) run() {
-	ticker := time.NewTicker(time.Second * 3).C
+	//ticker := time.NewTicker(time.Second * 3).C
+	ticker := time.NewTicker(time.Second * 2).C
 	var sysinfo_t unix.Sysinfo_t
 
 	for {
@@ -76,10 +78,15 @@ func (s *SysInfo) CPULoad() float64 {
 		return -1
 	}
 
+	//fmt.Printf("\n\n%v %v\n\n", total, idle)
+
 	return 100 * (total - idle) / total
 }
 
 func (s *SysInfo) updateCPU() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	f, err := ioutil.ReadFile("/proc/stat")
 	if err != nil {
 		return
@@ -107,9 +114,6 @@ func (s *SysInfo) updateCPU() {
 			idle += val
 		}
 	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if s.cpuIdleOld == 0 {
 		s.cpuIdleOld = idle

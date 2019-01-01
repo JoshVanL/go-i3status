@@ -18,8 +18,6 @@ const (
 )
 
 func Temp(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Second * 5).C
-
 	block.Name = "temp"
 
 	files, err := ioutil.ReadDir(thermalDir)
@@ -43,28 +41,25 @@ func Temp(block *protocol.Block, h *handler.Handler) {
 
 	normalColor := block.Color
 
-	go func() {
-		for {
-			b, err := utils.ReadFile(path)
-			h.Must(err)
+	update := func() {
+		b, err := utils.ReadFile(path)
+		h.Must(err)
 
-			temp, err := strconv.ParseFloat(string(b), 64)
-			h.Must(err)
+		temp, err := strconv.ParseFloat(string(b), 64)
+		h.Must(err)
 
-			temp = temp / 1000
+		temp = temp / 1000
 
-			if temp > 90 {
-				block.Color = "#ff3333"
-			} else if temp > 70 {
-				block.Color = "#ffaa33"
-			} else {
-				block.Color = normalColor
-			}
-			block.FullText = fmt.Sprintf("%1.f°C", temp)
-
-			h.Tick()
-
-			<-ticker
+		if temp > 90 {
+			block.Color = "#ff3333"
+		} else if temp > 70 {
+			block.Color = "#ffaa33"
+		} else {
+			block.Color = normalColor
 		}
-	}()
+		block.FullText = fmt.Sprintf("%1.f°C", temp)
+	}
+
+	h.Scheduler().Register(time.Second*5, update)
+
 }

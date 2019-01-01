@@ -8,21 +8,38 @@ import (
 	"github.com/joshvanl/go-i3status/protocol"
 )
 
-func CPU(block *protocol.Block, h *handler.Handler) {
-	ticker := time.NewTicker(time.Second * 5).C
+type cpu struct {
+	block *protocol.Block
+	h     *handler.Handler
+}
 
+func CPU(block *protocol.Block, h *handler.Handler) {
 	block.Name = "cpu"
 
-	go func() {
-		for {
-			load := h.SysInfo().CPULoad()
+	c := &cpu{
+		block: block,
+		h:     h,
+	}
+	//update := func() {
+	//}
 
-			if load != -1 {
-				block.FullText = fmt.Sprintf("cpu %.2f%%", load)
-				h.Tick()
-			}
+	//go func() {
+	//	for {
+	//		c.update()
+	//		time.Sleep(time.Second * 4)
+	//		h.Tick()
+	//	}
+	//}()
 
-			<-ticker
-		}
-	}()
+	h.Scheduler().Register(time.Second*2, c.update)
+}
+
+func (c *cpu) update() {
+	load := c.h.SysInfo().CPULoad()
+
+	if load == -1 {
+		c.block.FullText = "cpu 0.00%"
+	} else {
+		c.block.FullText = fmt.Sprintf("cpu %.2f%%", load)
+	}
 }

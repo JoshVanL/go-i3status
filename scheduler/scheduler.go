@@ -47,18 +47,25 @@ func (s *Scheduler) Run() {
 		ticker := time.NewTicker(d).C
 		go s.runTicker(ticker, fs)
 	}
+
+	for _, fs := range s.modules {
+		s.wg.Add(len(fs))
+		for _, f := range fs {
+			f(s.wg)
+		}
+	}
 }
 
 func (s *Scheduler) runTicker(ticker <-chan time.Time, fs []func(wg sync.WaitGroup)) {
 	for {
-		<-ticker
-
 		s.wg.Add(len(fs))
 		s.update <- struct{}{}
 
 		for _, f := range fs {
 			go f(s.wg)
 		}
+
+		<-ticker
 	}
 }
 
@@ -69,5 +76,6 @@ func (s *Scheduler) updater() {
 
 		s.wg.Wait()
 		s.tick <- struct{}{}
+		close(s.tick)
 	}
 }
