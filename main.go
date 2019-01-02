@@ -14,6 +14,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/memory"
 	"github.com/joshvanl/go-i3status/modules/temp"
 	"github.com/joshvanl/go-i3status/modules/time"
+	"github.com/joshvanl/go-i3status/modules/volume"
 	"github.com/joshvanl/go-i3status/modules/wallpaper"
 	"github.com/joshvanl/go-i3status/modules/wifi"
 	"github.com/joshvanl/go-i3status/protocol"
@@ -22,6 +23,7 @@ import (
 var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
 		wallpaper.Wallpaper,
+		volume.Volume,
 		memory.Memory,
 		disk.Disk,
 		wifi.Wifi,
