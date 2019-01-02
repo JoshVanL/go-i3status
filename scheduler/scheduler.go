@@ -6,17 +6,20 @@ import (
 )
 
 type Scheduler struct {
-	modules map[time.Duration][]func(sync.WaitGroup)
+	modules map[time.Duration][]func()
 	tick    chan struct{}
-	update  chan struct{}
 	mu      sync.Mutex
 	wg      sync.WaitGroup
+
+	update     chan struct{}
+	updatingMu sync.RWMutex
+	updating   bool
 }
 
 func New(tick chan struct{}) *Scheduler {
 	return &Scheduler{
 		tick:    tick,
-		modules: make(map[time.Duration][]func(sync.WaitGroup)),
+		modules: make(map[time.Duration][]func()),
 		update:  make(chan struct{}),
 	}
 }
@@ -25,14 +28,14 @@ func (s *Scheduler) Register(d time.Duration, update func()) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	f := func(wg sync.WaitGroup) {
-		defer wg.Done()
+	f := func() {
 		update()
+		s.wg.Done()
 	}
 
 	fs, ok := s.modules[d]
 	if !ok {
-		s.modules[d] = []func(sync.WaitGroup){f}
+		s.modules[d] = []func(){f}
 	} else {
 		s.modules[d] = append(fs, f)
 	}
@@ -41,41 +44,52 @@ func (s *Scheduler) Register(d time.Duration, update func()) {
 func (s *Scheduler) Run() {
 	s.mu.Lock()
 
-	go s.updater()
-
 	for d, fs := range s.modules {
-		ticker := time.NewTicker(d).C
-		go s.runTicker(ticker, fs)
+		go s.runTicker(time.NewTicker(d).C, fs)
 	}
 
 	for _, fs := range s.modules {
 		s.wg.Add(len(fs))
 		for _, f := range fs {
-			f(s.wg)
+			f()
 		}
 	}
+
+	s.wg.Wait()
+
+	go s.updater()
 }
 
-func (s *Scheduler) runTicker(ticker <-chan time.Time, fs []func(wg sync.WaitGroup)) {
+func (s *Scheduler) runTicker(ticker <-chan time.Time, fs []func()) {
 	for {
+		<-ticker
 		s.wg.Add(len(fs))
-		s.update <- struct{}{}
 
-		for _, f := range fs {
-			go f(s.wg)
+		s.updatingMu.RLock()
+
+		if !s.updating {
+			s.updating = true
+			s.update <- struct{}{}
 		}
 
-		<-ticker
+		s.updatingMu.RUnlock()
+
+		for _, f := range fs {
+			go f()
+		}
+
 	}
 }
 
 func (s *Scheduler) updater() {
 	for {
-		s.update = make(chan struct{}, len(s.modules))
 		<-s.update
-
 		s.wg.Wait()
+
 		s.tick <- struct{}{}
-		close(s.tick)
+
+		s.updatingMu.Lock()
+		s.updating = false
+		s.updatingMu.Unlock()
 	}
 }

@@ -31,7 +31,7 @@ func CPU(block *protocol.Block, h *handler.Handler) {
 	//	}
 	//}()
 
-	h.Scheduler().Register(time.Second*2, c.update)
+	h.Scheduler().Register(time.Second*3, c.update)
 }
 
 func (c *cpu) update() {
