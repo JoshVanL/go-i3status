@@ -12,6 +12,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/disk"
 	"github.com/joshvanl/go-i3status/modules/iface"
 	"github.com/joshvanl/go-i3status/modules/memory"
+	"github.com/joshvanl/go-i3status/modules/mic"
 	"github.com/joshvanl/go-i3status/modules/temp"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/volume"
@@ -23,6 +24,7 @@ import (
 var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
 		wallpaper.Wallpaper,
+		mic.Mic,
 		volume.Volume,
 		memory.Memory,
 		disk.Disk,
