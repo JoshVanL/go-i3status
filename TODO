@@ -1,6 +1,4 @@
 Install script to write hooks
 Have a unified is iface down func
 
-backlight
-mic
-bluetooth
+iface etc for eth

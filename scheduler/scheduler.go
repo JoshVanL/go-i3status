@@ -51,7 +51,7 @@ func (s *Scheduler) Run() {
 	for _, fs := range s.modules {
 		s.wg.Add(len(fs))
 		for _, f := range fs {
-			f()
+			go f()
 		}
 	}
 

@@ -2,7 +2,6 @@ package sysinfo
 
 import (
 	"bytes"
-	//"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -18,8 +17,9 @@ type SysInfo struct {
 	cpuTotalOld uint64
 	cpuTotalNew uint64
 
-	memUse [2]uint64
-	mu     sync.Mutex
+	memUse    [2]uint64
+	mu        sync.Mutex
+	processes *Processes
 }
 
 func New() (*SysInfo, error) {
@@ -30,7 +30,8 @@ func New() (*SysInfo, error) {
 	}
 
 	s := &SysInfo{
-		memUse: [2]uint64{sysinfo_t.Freeram, sysinfo_t.Totalram},
+		memUse:    [2]uint64{sysinfo_t.Freeram, sysinfo_t.Totalram},
+		processes: newProcesses(),
 	}
 
 	go s.run()
@@ -77,8 +78,6 @@ func (s *SysInfo) CPULoad() float64 {
 		return -1
 	}
 
-	//fmt.Printf("\n\n%v %v\n\n", total, idle)
-
 	return 100 * (total - idle) / total
 }
 
@@ -124,4 +123,8 @@ func (s *SysInfo) updateCPU() {
 
 	s.cpuIdleNew = idle
 	s.cpuTotalNew = total
+}
+
+func (s *SysInfo) Processes() *Processes {
+	return s.processes
 }

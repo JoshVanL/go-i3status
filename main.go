@@ -5,8 +5,10 @@ import (
 
 	"github.com/joshvanl/go-i3status/errors"
 	"github.com/joshvanl/go-i3status/handler"
+	"github.com/joshvanl/go-i3status/modules/backlight"
 	"github.com/joshvanl/go-i3status/modules/bandwidth"
 	"github.com/joshvanl/go-i3status/modules/battery"
+	"github.com/joshvanl/go-i3status/modules/bluetooth"
 	"github.com/joshvanl/go-i3status/modules/cpu"
 	"github.com/joshvanl/go-i3status/modules/date"
 	"github.com/joshvanl/go-i3status/modules/disk"
@@ -23,6 +25,7 @@ import (
 
 var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
+		bluetooth.Bluetooth,
 		wallpaper.Wallpaper,
 		mic.Mic,
 		volume.Volume,
@@ -32,6 +35,7 @@ var (
 		bandwidth.Bandwidth,
 		iface.IFace,
 		temp.Temp,
+		backlight.Backlight,
 		cpu.CPU,
 		battery.Battery,
 		date.Date,
