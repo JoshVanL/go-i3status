@@ -26,9 +26,9 @@ import (
 var (
 	enabledBlocks = []func(*protocol.Block, *handler.Handler){
 		bluetooth.Bluetooth,
-		wallpaper.Wallpaper,
 		mic.Mic,
 		volume.Volume,
+		wallpaper.Wallpaper,
 		memory.Memory,
 		disk.Disk,
 		wifi.Wifi,

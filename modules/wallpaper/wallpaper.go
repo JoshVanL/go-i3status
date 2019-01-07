@@ -14,8 +14,6 @@ const (
 
 func Wallpaper(block *protocol.Block, h *handler.Handler) {
 	block.Name = "wallpaper"
-	block.Separator = false
-	block.SeparatorBlockWidth = 10
 
 	ch, err := h.WatchFile(wallPath)
 	h.Must(err)

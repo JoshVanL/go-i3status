@@ -11,6 +11,8 @@ import (
 
 func Volume(block *protocol.Block, h *handler.Handler) {
 	block.Name = "volume"
+	block.Separator = false
+	block.SeparatorBlockWidth = 10
 
 	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+3"])
 
