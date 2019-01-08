@@ -34,5 +34,5 @@ func Date(block *protocol.Block, h *handler.Handler) {
 
 func getDateString(t time.Time) string {
 	return fmt.Sprintf("%s %d %s %d",
-		t.Format("Mon"), t.Day(), t.Format("Dec"), t.Year())
+		t.Format("Mon"), t.Day(), t.Month().String()[:3], t.Year())
 }
