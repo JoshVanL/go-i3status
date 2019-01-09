@@ -65,7 +65,7 @@ func (s *SysInfo) Memory() [3]float64 {
 
 	u, g := float64(s.memUse[0])/(1024*1024*1024), float64(s.memUse[1])/(1024*1024*1024)
 
-	return [3]float64{u, g, (u / g) * 100}
+	return [3]float64{g - u, g, ((g - u) / g) * 100}
 }
 
 func (s *SysInfo) CPULoad() float64 {
