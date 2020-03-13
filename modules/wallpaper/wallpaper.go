@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	wallPath = "/home/josh/scripts/currWall"
+	wallPath = "/home/josh/.config/wallpaper"
 )
 
 func Wallpaper(block *protocol.Block, h *handler.Handler) {

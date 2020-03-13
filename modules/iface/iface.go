@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ifaceName = "wlp58s0"
+	ifaceName = "wlan0"
 )
 
 func IFace(block *protocol.Block, h *handler.Handler) {

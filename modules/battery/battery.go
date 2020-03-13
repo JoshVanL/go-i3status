@@ -29,6 +29,7 @@ type battery struct {
 func Battery(block *protocol.Block, h *handler.Handler) {
 	block.Name = "battery"
 
+	ticker := time.NewTicker(time.Second * 10)
 	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+2"])
 
 	b := &battery{
@@ -42,7 +43,13 @@ func Battery(block *protocol.Block, h *handler.Handler) {
 		for {
 			b.setBatteryString()
 			b.h.Tick()
-			<-ch
+
+			select {
+			case <-ticker.C:
+				break
+			case <-ch:
+				break
+			}
 		}
 	}()
 }
@@ -105,13 +112,9 @@ func getIcon(b *protocol.Block, capacity int) string {
 		return ""
 	}
 
-	if capacity >= 40 {
+	if capacity >= 30 {
 		b.Color = "#ffdd77"
 		return ""
-	}
-
-	if capacity >= 30 {
-		b.Color = "#ffbb44"
 	}
 
 	if capacity < 30 && capacity >= 20 {

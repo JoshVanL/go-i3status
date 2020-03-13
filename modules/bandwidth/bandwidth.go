@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	ifaceName = "wlp58s0"
+	ifaceName = "wlan0"
 	statPath  = "/proc/net/dev"
-	secs      = 3
+	secs      = 2
 )
 
 type netStat struct {

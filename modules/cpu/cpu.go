@@ -21,5 +21,5 @@ func CPU(block *protocol.Block, h *handler.Handler) {
 		}
 	}
 
-	h.Scheduler().Register(time.Second*3, update)
+	h.Scheduler().Register(time.Second, update)
 }

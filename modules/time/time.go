@@ -14,18 +14,10 @@ func Time(block *protocol.Block, h *handler.Handler) {
 	block.FullText = getTimeString(now)
 	h.Tick()
 
-	hour := now.Hour()
-	min := now.Minute()
-
-	min = (min + 1) % 60
-	if min == 0 {
-		hour = (hour + 1) % 24
-	}
-
-	till := time.Date(now.Year(), now.Month(), now.Day(), hour, min, 0, 0, now.Location())
+	ticker := time.NewTicker(time.Second / 2)
 
 	go func() {
-		time.Sleep(time.Until(till))
+		<-ticker.C
 
 		block.FullText = getTimeString(time.Now())
 		h.Tick()
