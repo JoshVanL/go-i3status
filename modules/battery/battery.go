@@ -87,7 +87,8 @@ func (b *battery) getFiles() (status, capacity []byte) {
 
 func getIcon(b *protocol.Block, capacity int) string {
 	if capacity == 100 {
-		b.Color = "#FFFFFF"
+		//b.Color = "#FFFFFF"
+		b.Color = "#000000"
 		return ""
 	}
 

@@ -18,6 +18,7 @@ import (
 	"github.com/joshvanl/go-i3status/modules/temp"
 	"github.com/joshvanl/go-i3status/modules/time"
 	"github.com/joshvanl/go-i3status/modules/volume"
+
 	//"github.com/joshvanl/go-i3status/modules/wallpaper"
 	"github.com/joshvanl/go-i3status/modules/wifi"
 	"github.com/joshvanl/go-i3status/protocol"
@@ -29,6 +30,7 @@ var (
 		mic.Mic,
 		volume.Volume,
 		//wallpaper.Wallpaper,
+		cpu.CPU,
 		memory.Memory,
 		disk.Disk,
 		wifi.Wifi,
@@ -36,7 +38,6 @@ var (
 		iface.IFace,
 		temp.Temp,
 		backlight.Backlight,
-		cpu.CPU,
 		battery.Battery,
 		date.Date,
 		time.Time,
@@ -52,9 +53,9 @@ func main() {
 	for _, f := range enabledBlocks {
 		b := &protocol.Block{
 			Align:               protocol.Right,
-			Color:               "#44444444",
-			Background:          "#BBBBBBBB",
-			Border:              "#BBBBBBBB",
+			Color:               "#000000FF",
+			Background:          "#aeaeb2BB",
+			Border:              "#aeaeb2BB",
 			SeparatorBlockWidth: 30,
 			Separator:           true,
 		}

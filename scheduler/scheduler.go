@@ -84,7 +84,7 @@ func (s *Scheduler) runTicker(ticker <-chan time.Time, fs []func()) {
 func (s *Scheduler) updater() {
 	for {
 		<-s.update
-		s.wg.Wait()
+		//s.wg.Wait()
 
 		s.tick <- struct{}{}
 

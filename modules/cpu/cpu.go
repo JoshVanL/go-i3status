@@ -10,16 +10,19 @@ import (
 
 func CPU(block *protocol.Block, h *handler.Handler) {
 	block.Name = "cpu"
+	block.Separator = false
+	block.SeparatorBlockWidth = 15
 
 	update := func() {
 		load := h.SysInfo().CPULoad()
 
 		if load == -1 {
-			block.FullText = "cpu 0.00%"
+			block.FullText = " 0.00%"
 		} else {
-			block.FullText = fmt.Sprintf("cpu %.2f%%", load)
+			//block.FullText = fmt.Sprintf("cpu %.2f%%", load)
+			block.FullText = fmt.Sprintf(" %.2f%%", load)
 		}
 	}
 
-	h.Scheduler().Register(time.Second, update)
+	h.Scheduler().Register(time.Second/2, update)
 }

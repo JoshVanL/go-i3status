@@ -29,12 +29,14 @@ func Wifi(block *protocol.Block, h *handler.Handler) {
 			return
 		}
 
-		if n >= 80 {
+		//if n >= 70 {
+		//	block.Color = "#0050b8"
+		//} else if n >= 50 {
+		if n >= 50 {
 			block.Color = "#aaddaa"
-		} else if n >= 60 {
-			block.Color = "#ffaa33"
-		} else if n >= 40 {
-			block.Color = "#ffae88"
+		} else if n >= 30 {
+			block.Color = "#a65f3d"
+			//block.Color = "#ffae88"
 		} else {
 			block.Color = "#ff0000"
 		}

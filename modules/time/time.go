@@ -14,19 +14,19 @@ func Time(block *protocol.Block, h *handler.Handler) {
 	block.FullText = getTimeString(now)
 	h.Tick()
 
+	loc, err := time.LoadLocation("Europe/London")
+	if err != nil {
+		panic(err)
+	}
+
 	ticker := time.NewTicker(time.Second / 2)
 
 	go func() {
-		<-ticker.C
-
-		block.FullText = getTimeString(time.Now())
-		h.Tick()
-
-		ticker := time.NewTicker(time.Minute)
-
-		for t := range ticker.C {
-			block.FullText = getTimeString(t)
+		for {
+			block.FullText = getTimeString(time.Now().In(loc))
 			h.Tick()
+
+			<-ticker.C
 		}
 	}()
 }

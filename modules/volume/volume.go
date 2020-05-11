@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"strconv"
 
 	"github.com/joshvanl/go-i3status/handler"
 	"github.com/joshvanl/go-i3status/protocol"
@@ -39,12 +40,14 @@ func update(h *handler.Handler) string {
 	}
 
 	if bytes.Contains(bs, []byte{'o', 'f', 'f'}) {
-		return "♪ "
+		//return "♪ "
+		return ""
 	}
 
 	var out string
 	var index int
-	for i, b := range split[4] {
+	//for i, b := range split[4] {
+	for i, b := range split[5] {
 		if b == '[' {
 			index = i
 			break
@@ -52,16 +55,31 @@ func update(h *handler.Handler) string {
 	}
 
 	if index == 0 {
-		h.Must(fmt.Errorf("filed to find volume: %s", split[4]))
+		h.Must(fmt.Errorf("failed to find volume: %s", split[4]))
 	}
 
-	for _, b := range split[4][index+1:] {
+	icon := ""
+
+	//for _, b := range split[4][index+1:] {
+	for _, b := range split[5][index+1:] {
 		if b == ']' {
 			break
+		}
+
+		if b == '%' {
+			n, err := strconv.Atoi(string(out))
+			if err == nil {
+				if n == 0 {
+					icon = ""
+				} else if n < 40 {
+					icon = ""
+				}
+			}
 		}
 
 		out = out + string(b)
 	}
 
-	return fmt.Sprintf("♪ %s", out)
+	//return fmt.Sprintf("  %s", out)
+	return fmt.Sprintf(" %s %s", icon, out)
 }

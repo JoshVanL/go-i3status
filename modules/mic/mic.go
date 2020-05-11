@@ -10,7 +10,7 @@ import (
 
 func Mic(block *protocol.Block, h *handler.Handler) {
 	block.Name = "mic"
-	block.Separator = false
+	block.Separator = true
 	block.SeparatorBlockWidth = 10
 
 	ch := h.WatchSignal(protocol.RealTimeSignals["RTMIN+4"])
@@ -33,8 +33,8 @@ func update(h *handler.Handler) string {
 	h.Must(err)
 
 	if bytes.Contains(bs, []byte("[off]")) {
-		return ""
+		return " "
 	}
 
-	return ""
+	return " "
 }
